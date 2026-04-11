@@ -21,12 +21,6 @@ const _widgetScript: HTMLScriptElement | null =
 
 function getConfig(): IWidgetConfig {
   const script = _widgetScript;
-  console.log('DevfrendChat config:', {
-    primaryColor: script?.getAttribute('data-primary-color'),
-    position: script?.getAttribute('data-position'),
-    title: script?.getAttribute('data-title'),
-    welcomeMessage: script?.getAttribute('data-welcome-message'),
-  });
 
   return {
     embedKey: script?.getAttribute('data-embed-key') ?? '',
@@ -98,6 +92,35 @@ function saveLead(lead: ILeadData): void {
 }
 
 // ---------------------------------------------------------------------------
+// Color utilities
+// ---------------------------------------------------------------------------
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  const full = h.length === 3
+    ? h[0] + h[0] + h[1] + h[1] + h[2] + h[2]
+    : h;
+  return [
+    parseInt(full.substring(0, 2), 16),
+    parseInt(full.substring(2, 4), 16),
+    parseInt(full.substring(4, 6), 16),
+  ];
+}
+
+function rgbStr(c: [number, number, number]): string {
+  return `${c[0]}, ${c[1]}, ${c[2]}`;
+}
+
+function purpleShift(hex: string): string {
+  const [r, g, b] = hexToRgb(hex);
+  // Blend toward purple — boost blue, reduce green, keep red warm
+  const nr = Math.min(255, Math.round(r * 0.75 + 140 * 0.25));
+  const ng = Math.min(255, Math.round(g * 0.5));
+  const nb = Math.min(255, Math.round(b * 0.55 + 220 * 0.45));
+  return `${nr}, ${ng}, ${nb}`;
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -131,12 +154,12 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-function svgIcon(paths: string[], viewBox = '0 0 24 24'): SVGSVGElement {
+function svgIcon(paths: string[], viewBox = '0 0 24 24', size = '24'): SVGSVGElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', viewBox);
   svg.setAttribute('fill', 'currentColor');
-  svg.setAttribute('width', '24');
-  svg.setAttribute('height', '24');
+  svg.setAttribute('width', size);
+  svg.setAttribute('height', size);
   for (const d of paths) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', d);
@@ -156,6 +179,11 @@ function renderMarkdown(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
+function formatTime(ts: number): string {
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
@@ -163,6 +191,8 @@ function renderMarkdown(text: string): string {
 function buildStyles(config: IWidgetConfig): string {
   const pos = config.position === 'left' ? 'left' : 'right';
   const pc = config.primaryColor;
+  const rgb = rgbStr(hexToRgb(pc));
+  const ps = purpleShift(pc);
 
   return `
     :host {
@@ -175,31 +205,35 @@ function buildStyles(config: IWidgetConfig): string {
       position: fixed;
       bottom: 20px;
       ${pos}: 20px;
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
-      background: ${pc};
+      background: linear-gradient(135deg, rgb(${rgb}), rgb(${ps}));
       color: #fff;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      box-shadow: 0 8px 32px rgba(${rgb}, 0.4);
       z-index: 999998;
-      transition: transform 0.2s ease;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.3s ease;
       padding: 0;
     }
-    .df-bubble:hover { transform: scale(1.1); }
+    .df-bubble:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 40px rgba(${rgb}, 0.55);
+    }
     .df-bubble svg {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      width: 26px;
+      height: 26px;
     }
     .df-bubble .df-icon-chat,
     .df-bubble .df-icon-close {
       position: absolute;
-      transition: transform 0.25s ease, opacity 0.25s ease;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  opacity 0.25s ease;
     }
     .df-bubble .df-icon-close {
       opacity: 0;
@@ -217,21 +251,26 @@ function buildStyles(config: IWidgetConfig): string {
     /* ---- Window ---- */
     .df-window {
       position: fixed;
-      bottom: 88px;
+      bottom: 92px;
       ${pos}: 20px;
       width: 380px;
-      height: 520px;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      height: 540px;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(24px) saturate(1.2);
+      -webkit-backdrop-filter: blur(24px) saturate(1.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5),
+                  0 0 1px rgba(255, 255, 255, 0.1) inset;
       z-index: 999999;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       opacity: 0;
-      transform: translateY(12px) scale(0.95);
+      transform: translateY(20px) scale(0.9);
       pointer-events: none;
-      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+      transition: opacity 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .df-window.df-visible {
       opacity: 1;
@@ -241,32 +280,39 @@ function buildStyles(config: IWidgetConfig): string {
 
     /* ---- Header ---- */
     .df-header {
-      background: ${pc};
+      background: linear-gradient(135deg, rgb(${rgb}), rgb(${ps}));
       color: #fff;
       height: 56px;
       min-height: 56px;
       padding: 0 16px;
       font-size: 16px;
       font-weight: 600;
+      letter-spacing: -0.01em;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-radius: 16px 16px 0 0;
+      border-radius: 20px 20px 0 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .df-header-title {
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
     }
     .df-header-close {
-      background: none;
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.15);
       border: none;
       color: #fff;
       cursor: pointer;
-      padding: 4px;
+      padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
-      transition: background 0.15s;
+      border-radius: 50%;
+      transition: background 0.2s ease;
     }
-    .df-header-close:hover { background: rgba(255,255,255,0.2); }
-    .df-header-close svg { width: 20px; height: 20px; }
+    .df-header-close:hover { background: rgba(255, 255, 255, 0.25); }
+    .df-header-close svg { width: 16px; height: 16px; }
 
     /* ---- Messages ---- */
     .df-messages {
@@ -275,64 +321,99 @@ function buildStyles(config: IWidgetConfig): string {
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
+      background: transparent;
     }
+    .df-messages::-webkit-scrollbar { width: 4px; }
+    .df-messages::-webkit-scrollbar-track { background: transparent; }
+    .df-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .df-msg-wrap {
+      display: flex;
+      flex-direction: column;
+      animation: df-msg-in 0.2s ease-out both;
+    }
+    .df-msg-wrap-user { align-items: flex-end; }
+    .df-msg-wrap-assistant { align-items: flex-start; }
+
+    @keyframes df-msg-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .df-msg {
-      max-width: 80%;
       padding: 10px 14px;
-      border-radius: 12px;
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.6;
       word-wrap: break-word;
       white-space: pre-wrap;
     }
     .df-msg-user {
-      align-self: flex-end;
-      background: ${pc};
+      max-width: 80%;
+      background: linear-gradient(135deg, rgb(${rgb}), rgb(${ps}));
       color: #fff;
-      border-bottom-right-radius: 4px;
+      border-radius: 20px 20px 4px 20px;
+      box-shadow: 0 4px 16px rgba(${rgb}, 0.3);
     }
     .df-msg-assistant {
-      align-self: flex-start;
-      background: #f3f4f6;
-      color: #1f2937;
-      border-bottom-left-radius: 4px;
+      max-width: 85%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.9);
+      border-radius: 20px 20px 20px 4px;
+    }
+    .df-msg-welcome {
+      font-size: 15px;
+    }
+
+    .df-msg-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      margin-top: 4px;
+      padding: 0 4px;
     }
 
     /* ---- Typing indicator ---- */
     .df-typing {
       align-self: flex-start;
       display: flex;
-      gap: 4px;
-      padding: 10px 14px;
-      background: #f3f4f6;
-      border-radius: 12px;
-      border-bottom-left-radius: 4px;
+      gap: 5px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px 20px 20px 4px;
     }
     .df-typing-dot {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: #9ca3af;
-      animation: df-bounce 1.4s infinite ease-in-out both;
+      background: rgba(255, 255, 255, 0.5);
+      animation: df-dot-bounce 1.4s infinite ease-in-out both;
     }
     .df-typing-dot:nth-child(1) { animation-delay: 0s; }
-    .df-typing-dot:nth-child(2) { animation-delay: 0.16s; }
-    .df-typing-dot:nth-child(3) { animation-delay: 0.32s; }
-    @keyframes df-bounce {
-      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-      40% { transform: scale(1); opacity: 1; }
+    .df-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .df-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes df-dot-bounce {
+      0%, 80%, 100% { transform: scale(1); opacity: 0.4; }
+      40% { transform: scale(1.4); opacity: 1; }
     }
 
     /* ---- Input ---- */
     .df-input-bar {
       display: flex;
       align-items: center;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding: 12px 16px;
       gap: 8px;
-      border-radius: 0 0 16px 16px;
-      background: #ffffff;
+      border-radius: 0 0 20px 20px;
+      background: rgba(255, 255, 255, 0.06);
+      transition: box-shadow 0.2s ease;
+    }
+    .df-input-bar.df-focused {
+      box-shadow: 0 0 0 1px rgba(${rgb}, 0.3) inset;
     }
     .df-input {
       flex: 1;
@@ -341,15 +422,15 @@ function buildStyles(config: IWidgetConfig): string {
       font-size: 14px;
       font-family: inherit;
       background: transparent;
-      color: #1f2937;
+      color: #fff;
       padding: 0;
     }
-    .df-input::placeholder { color: #9ca3af; }
+    .df-input::placeholder { color: rgba(255, 255, 255, 0.3); }
     .df-send {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: ${pc};
+      background: linear-gradient(135deg, rgb(${rgb}), rgb(${ps}));
       color: #fff;
       border: none;
       cursor: pointer;
@@ -358,9 +439,28 @@ function buildStyles(config: IWidgetConfig): string {
       justify-content: center;
       padding: 0;
       flex-shrink: 0;
-      transition: opacity 0.15s;
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease,
+                  box-shadow 0.2s ease;
     }
-    .df-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    .df-send.df-send-visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+    .df-send:hover {
+      box-shadow: 0 4px 16px rgba(${rgb}, 0.4);
+    }
+    .df-send:active {
+      transform: scale(0.9);
+    }
+    .df-send:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     .df-send svg { width: 16px; height: 16px; }
 
     /* ---- Toast notification ---- */
@@ -369,13 +469,15 @@ function buildStyles(config: IWidgetConfig): string {
       bottom: 70px;
       left: 16px;
       right: 16px;
-      background: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-      border-radius: 8px;
+      background: rgba(220, 38, 38, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      border-radius: 12px;
       padding: 10px 14px;
       font-size: 13px;
       text-align: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       opacity: 1;
       transition: opacity 0.3s ease;
       z-index: 10;
@@ -386,80 +488,149 @@ function buildStyles(config: IWidgetConfig): string {
     .df-escalate {
       text-align: center;
       padding: 4px 16px 8px;
-      background: #ffffff;
+      background: transparent;
     }
     .df-escalate-link {
       background: none;
       border: none;
-      color: #9ca3af;
+      color: rgba(255, 255, 255, 0.3);
       font-size: 12px;
       font-family: inherit;
       cursor: pointer;
       padding: 0;
-      transition: color 0.15s;
+      transition: color 0.2s ease;
+      text-decoration: none;
     }
-    .df-escalate-link:hover { color: #6b7280; }
+    .df-escalate-link:hover {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: underline;
+    }
+    .df-escalate-link svg {
+      width: 12px;
+      height: 12px;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
 
     /* ---- Lead form ---- */
     .df-lead-form {
-      padding: 16px;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: df-fade-in 0.3s ease-out both;
+    }
+    @keyframes df-fade-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .df-lead-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
+    .df-lead-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: -8px;
+    }
     .df-lead-input {
       width: 100%;
       padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
       font-size: 14px;
       font-family: inherit;
       outline: none;
-      background: #fff;
-      color: #1f2937;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
       box-sizing: border-box;
-      transition: border-color 0.15s;
+      transition: border-color 0.2s ease;
     }
     .df-lead-input:focus {
-      border-color: ${pc};
+      border-color: rgba(${rgb}, 0.5);
     }
-    .df-lead-input::placeholder { color: #9ca3af; }
+    .df-lead-input::placeholder { color: rgba(255, 255, 255, 0.3); }
     .df-lead-btn {
       width: 100%;
-      padding: 10px 16px;
+      padding: 12px 16px;
       border: none;
-      border-radius: 8px;
-      background: ${pc};
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgb(${rgb}), rgb(${ps}));
       color: #fff;
       font-size: 14px;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
-      transition: opacity 0.15s;
+      transition: opacity 0.2s ease, box-shadow 0.2s ease;
     }
-    .df-lead-btn:hover { opacity: 0.9; }
-    .df-lead-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .df-lead-btn:hover {
+      opacity: 0.95;
+      box-shadow: 0 4px 16px rgba(${rgb}, 0.3);
+    }
+    .df-lead-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .df-lead-error {
-      color: #ef4444;
+      color: #fca5a5;
       font-size: 12px;
       margin-top: -8px;
     }
 
-    /* ---- Dark mode ---- */
-    @media (prefers-color-scheme: dark) {
-      .df-window { background: #1f2937; }
-      .df-messages { background: #1f2937; }
-      .df-msg-assistant { background: #374151; color: #f3f4f6; }
-      .df-input-bar { background: #1f2937; border-top-color: #374151; }
-      .df-input { color: #f3f4f6; }
-      .df-input::placeholder { color: #6b7280; }
-      .df-typing { background: #374151; }
-      .df-typing-dot { background: #6b7280; }
-      .df-escalate { background: #1f2937; }
-      .df-escalate-link { color: #6b7280; }
-      .df-escalate-link:hover { color: #9ca3af; }
-      .df-lead-input { background: #374151; color: #f3f4f6; border-color: #4b5563; }
-      .df-lead-input::placeholder { color: #6b7280; }
+    /* ---- Light mode ---- */
+    @media (prefers-color-scheme: light) {
+      .df-window {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(24px) saturate(1.2);
+        -webkit-backdrop-filter: blur(24px) saturate(1.2);
+        border-color: rgba(0, 0, 0, 0.08);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18),
+                    0 0 1px rgba(0, 0, 0, 0.05) inset;
+      }
+      .df-msg-assistant {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.06);
+        color: #1f2937;
+      }
+      .df-msg-time { color: rgba(0, 0, 0, 0.35); }
+      .df-input-bar {
+        background: rgba(0, 0, 0, 0.03);
+        border-top-color: rgba(0, 0, 0, 0.08);
+      }
+      .df-input-bar.df-focused {
+        box-shadow: 0 0 0 1px rgba(${rgb}, 0.2) inset;
+      }
+      .df-input { color: #1f2937; }
+      .df-input::placeholder { color: rgba(0, 0, 0, 0.35); }
+      .df-typing {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.06);
+      }
+      .df-typing-dot { background: rgba(0, 0, 0, 0.35); }
+      .df-escalate-link { color: rgba(0, 0, 0, 0.35); }
+      .df-escalate-link:hover { color: rgba(0, 0, 0, 0.6); }
+      .df-lead-card {
+        background: rgba(0, 0, 0, 0.03);
+        border-color: rgba(0, 0, 0, 0.08);
+      }
+      .df-lead-label { color: rgba(0, 0, 0, 0.5); }
+      .df-lead-input {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 0, 0, 0.1);
+        color: #1f2937;
+      }
+      .df-lead-input::placeholder { color: rgba(0, 0, 0, 0.35); }
+      .df-lead-error { color: #dc2626; }
+      .df-toast {
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+        border-color: rgba(220, 38, 38, 0.15);
+      }
+      .df-messages::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.12);
+      }
     }
 
     /* ---- Mobile fullscreen ---- */
@@ -471,9 +642,13 @@ function buildStyles(config: IWidgetConfig): string {
         right: 0;
         left: 0;
         border-radius: 0;
+        border: none;
       }
       .df-header { border-radius: 0; }
-      .df-input-bar { border-radius: 0; }
+      .df-input-bar {
+        border-radius: 0;
+        padding: 14px 16px;
+      }
     }
   `;
 }
@@ -492,6 +667,10 @@ const ICON_CLOSE = [
 
 const ICON_SEND = [
   'M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94l18.243-8.498a.75.75 0 0 0 0-1.394L3.478 2.404z',
+];
+
+const ICON_ARROW_RIGHT = [
+  'M10 6l-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z',
 ];
 
 // ---------------------------------------------------------------------------
@@ -535,9 +714,9 @@ function createWidget(config: IWidgetConfig): void {
   const needsLeadForm = config.collectLead && !leadData;
 
   // ---- Create bubble ----
-  const chatIcon = svgIcon(ICON_CHAT);
+  const chatIcon = svgIcon(ICON_CHAT, '0 0 24 24', '26');
   chatIcon.classList.add('df-icon-chat');
-  const closeIconBubble = svgIcon(ICON_CLOSE);
+  const closeIconBubble = svgIcon(ICON_CLOSE, '0 0 24 24', '26');
   closeIconBubble.classList.add('df-icon-close');
 
   const bubble = el('button', undefined, {
@@ -547,8 +726,8 @@ function createWidget(config: IWidgetConfig): void {
 
   // ---- Create window ----
   // Header
-  const headerTitle = el('span', undefined, undefined, [config.title]);
-  const headerCloseIcon = svgIcon(ICON_CLOSE);
+  const headerTitle = el('span', undefined, { class: 'df-header-title' }, [config.title]);
+  const headerCloseIcon = svgIcon(ICON_CLOSE, '0 0 24 24', '16');
   const headerClose = el('button', undefined, {
     class: 'df-header-close',
     'aria-label': 'Close chat',
@@ -588,11 +767,27 @@ function createWidget(config: IWidgetConfig): void {
     sendBtn,
   ]);
 
+  // Send button visibility — only show when text is entered
+  input.addEventListener('input', () => {
+    if (input.value.trim()) {
+      sendBtn.classList.add('df-send-visible');
+    } else {
+      sendBtn.classList.remove('df-send-visible');
+    }
+  });
+
+  // Focus glow on input bar
+  input.addEventListener('focus', () => inputBar.classList.add('df-focused'));
+  input.addEventListener('blur', () => inputBar.classList.remove('df-focused'));
+
   // ---- Escalation link ----
+  const arrowIcon = svgIcon(ICON_ARROW_RIGHT, '0 0 24 24', '12');
   const escalateLink = el('button', undefined, {
     class: 'df-escalate-link',
     type: 'button',
-  }, ['Talk to a human']);
+  }, ['Talk to a human ']);
+  escalateLink.appendChild(arrowIcon);
+
   const escalateBar = el('div', undefined, { class: 'df-escalate' }, [
     escalateLink,
   ]);
@@ -638,15 +833,17 @@ function createWidget(config: IWidgetConfig): void {
   }
 
   // ---- Lead capture form ----
+  const leadNameLabel = el('div', undefined, { class: 'df-lead-label' }, ['Name']);
   const leadNameInput = el('input', undefined, {
     class: 'df-lead-input',
     type: 'text',
     placeholder: 'Your name (optional)',
   });
+  const leadEmailLabel = el('div', undefined, { class: 'df-lead-label' }, ['Email']);
   const leadEmailInput = el('input', undefined, {
     class: 'df-lead-input',
     type: 'email',
-    placeholder: 'Your email *',
+    placeholder: 'you@company.com',
   });
   const leadError = el('div', undefined, { class: 'df-lead-error' });
   leadError.style.display = 'none';
@@ -654,12 +851,17 @@ function createWidget(config: IWidgetConfig): void {
     class: 'df-lead-btn',
     type: 'button',
   }, ['Start Chat']);
-  const leadForm = el('div', undefined, { class: 'df-lead-form' }, [
+
+  const leadCard = el('div', undefined, { class: 'df-lead-card' }, [
+    leadNameLabel,
     leadNameInput,
+    leadEmailLabel,
     leadEmailInput,
     leadError,
     leadSubmitBtn,
   ]);
+
+  const leadForm = el('div', undefined, { class: 'df-lead-form' }, [leadCard]);
 
   // Hide lead form if not needed, hide input bar if form is shown
   if (!needsLeadForm) {
@@ -719,24 +921,36 @@ function createWidget(config: IWidgetConfig): void {
 
     // Show welcome message when there are no messages
     if (state.messages.length === 0) {
-      const welcome = el('div', undefined, { class: 'df-msg df-msg-assistant' }, [
-        config.welcomeMessage,
-      ]);
-      messagesContainer.appendChild(welcome);
+      const wrap = el('div', undefined, { class: 'df-msg-wrap df-msg-wrap-assistant' });
+      const welcome = el('div', undefined, {
+        class: 'df-msg df-msg-assistant df-msg-welcome',
+      }, [config.welcomeMessage]);
+      wrap.appendChild(welcome);
+      messagesContainer.appendChild(wrap);
     }
 
     for (const msg of state.messages) {
-      const msgEl = el(
-        'div',
-        undefined,
-        { class: `df-msg df-msg-${msg.role}` },
-      );
+      const wrap = el('div', undefined, {
+        class: `df-msg-wrap df-msg-wrap-${msg.role}`,
+      });
+
+      const msgEl = el('div', undefined, {
+        class: `df-msg df-msg-${msg.role}`,
+      });
+
       if (msg.role === 'assistant') {
         msgEl.innerHTML = renderMarkdown(msg.content);
       } else {
         msgEl.textContent = msg.content;
       }
-      messagesContainer.appendChild(msgEl);
+
+      const timeEl = el('div', undefined, { class: 'df-msg-time' }, [
+        formatTime(msg.timestamp),
+      ]);
+
+      wrap.appendChild(msgEl);
+      wrap.appendChild(timeEl);
+      messagesContainer.appendChild(wrap);
     }
 
     // Append typing indicator at the end
@@ -801,6 +1015,7 @@ function createWidget(config: IWidgetConfig): void {
     if (!text || state.isStreaming) return;
 
     input.value = '';
+    sendBtn.classList.remove('df-send-visible');
     addMessage('user', text);
     state.isStreaming = true;
     sendBtn.disabled = true;
@@ -943,7 +1158,6 @@ function createWidget(config: IWidgetConfig): void {
 function init(): void {
   const config = getConfig();
   createWidget(config);
-  console.log('Devfrend Chat Widget initialized');
 }
 
 if (document.readyState === 'loading') {

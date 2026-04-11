@@ -56,7 +56,7 @@ function ArrowRightIcon({ className }: { className?: string }) {
 /* ------------------------------------------------------------------ */
 
 const fadeInUp = {
-  initial: { opacity: 0, y: 40 },
+  initial: { opacity: 1, y: 0 },
   animate: { opacity: 1, y: 0 },
 };
 
@@ -213,7 +213,7 @@ function Hero3DWidget() {
           {messages.map((msg, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 1, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 + i * 0.3, ...springTransition }}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -232,7 +232,7 @@ function Hero3DWidget() {
 
           {/* Typing indicator */}
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.7 }}
             className="flex justify-start"
@@ -318,14 +318,9 @@ function HeroSection() {
 
       <div className="relative mx-auto flex max-w-6xl items-center gap-16 px-6">
         {/* Left: Text */}
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="max-w-2xl"
-        >
+        <div className="max-w-2xl">
           {/* Pill badge */}
-          <motion.div variants={fadeInUp} transition={springTransition}>
+          <div className="animate-hero-fade-in-up">
             <motion.span
               whileHover={{ scale: 1.05 }}
               className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur-sm"
@@ -333,48 +328,43 @@ function HeroSection() {
               <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
               Now in public beta
             </motion.span>
-          </motion.div>
+          </div>
 
           {/* Hero heading */}
-          <motion.h1
-            variants={fadeInUp}
-            transition={{ ...springTransition, delay: 0.1 }}
-            className="mt-8 text-5xl leading-[1.05] font-bold tracking-[-0.02em] text-white md:text-7xl"
+          <h1
+            className="animate-hero-fade-in-up mt-8 text-5xl leading-[1.05] font-bold tracking-[-0.02em] text-white md:text-7xl"
+            style={{ animationDelay: "0.1s" }}
           >
             AI Customer Support
-          </motion.h1>
-          <motion.h1
-            variants={fadeInUp}
-            transition={{ ...springTransition, delay: 0.3 }}
-            className="text-5xl leading-[1.05] font-bold tracking-[-0.02em] md:text-7xl"
+          </h1>
+          <h1
+            className="animate-hero-fade-in-up text-5xl leading-[1.05] font-bold tracking-[-0.02em] md:text-7xl"
+            style={{ animationDelay: "0.25s" }}
           >
             <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
               That Actually Knows
             </span>
-          </motion.h1>
-          <motion.h1
-            variants={fadeInUp}
-            transition={{ ...springTransition, delay: 0.5 }}
-            className="text-5xl leading-[1.05] font-bold tracking-[-0.02em] text-white md:text-7xl"
+          </h1>
+          <h1
+            className="animate-hero-fade-in-up text-5xl leading-[1.05] font-bold tracking-[-0.02em] text-white md:text-7xl"
+            style={{ animationDelay: "0.4s" }}
           >
             Your Business
-          </motion.h1>
+          </h1>
 
           {/* Subtitle */}
-          <motion.p
-            variants={fadeInUp}
-            transition={{ ...springTransition, delay: 0.7 }}
-            className="mt-6 max-w-lg text-lg leading-relaxed text-white/50"
+          <p
+            className="animate-hero-fade-in-up mt-6 max-w-lg text-lg leading-relaxed text-white/50"
+            style={{ animationDelay: "0.55s" }}
           >
             Add an intelligent chatbot to your website in 2 minutes. Trained on
             your content. Answers customers 24/7. No coding required.
-          </motion.p>
+          </p>
 
           {/* CTAs */}
-          <motion.div
-            variants={fadeInUp}
-            transition={{ ...springTransition, delay: 0.9 }}
-            className="mt-10 flex flex-col gap-4 sm:flex-row"
+          <div
+            className="animate-hero-fade-in-up mt-10 flex flex-col gap-4 sm:flex-row"
+            style={{ animationDelay: "0.7s" }}
           >
             <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.98 }}>
               <Link
@@ -393,19 +383,18 @@ function HeroSection() {
                 See Demo
               </Link>
             </motion.div>
-          </motion.div>
+          </div>
 
           {/* Trust badges */}
-          <motion.div
-            variants={fadeInUp}
-            transition={{ ...springTransition, delay: 1.1 }}
-            className="mt-12 flex flex-wrap gap-8 text-sm text-white/30"
+          <div
+            className="animate-hero-fade-in-up mt-12 flex flex-wrap gap-8 text-sm text-white/30"
+            style={{ animationDelay: "0.85s" }}
           >
             <span>500+ businesses powered</span>
             <span>Answers from YOUR content</span>
             <span>Setup in 2 minutes</span>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Right: 3D Widget */}
         <Hero3DWidget />
@@ -459,7 +448,7 @@ function HowItWorksSection() {
     <section id="how-it-works" className="relative py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={springTransition}
@@ -477,7 +466,7 @@ function HowItWorksSection() {
           {steps.map((item, i) => (
             <motion.div
               key={item.step}
-              initial={{ opacity: 0, y: 50, rotateY: -10 }}
+              initial={{ opacity: 1, y: 50, rotateY: -10 }}
               whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ ...springTransition, delay: i * 0.2 }}
@@ -556,7 +545,7 @@ function FeaturesSection() {
     <section id="features" className="relative py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={springTransition}
@@ -575,7 +564,7 @@ function FeaturesSection() {
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 1, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ ...springTransition, delay: i * 0.1 }}
@@ -713,7 +702,7 @@ function WidgetDemoSection() {
               {demoMessages.map((msg, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 15 }}
+                  initial={{ opacity: 1, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.3, ...springTransition }}
@@ -733,7 +722,7 @@ function WidgetDemoSection() {
 
               {/* Typing indicator */}
               <motion.div
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 1 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.9 }}
@@ -838,7 +827,7 @@ function PricingSection() {
     <section id="pricing" className="relative py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={springTransition}
@@ -856,7 +845,7 @@ function PricingSection() {
           {pricingTiers.map((tier, i) => (
             <motion.div
               key={tier.name}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 1, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ ...springTransition, delay: i * 0.2 }}
@@ -948,7 +937,7 @@ function FinalCTASection() {
 
       <div className="relative mx-auto max-w-4xl px-6 text-center">
         <motion.h2
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={springTransition}
@@ -962,7 +951,7 @@ function FinalCTASection() {
         </motion.h2>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ ...springTransition, delay: 0.15 }}
@@ -973,7 +962,7 @@ function FinalCTASection() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ ...springTransition, delay: 0.3 }}
@@ -995,7 +984,7 @@ function FinalCTASection() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.45 }}

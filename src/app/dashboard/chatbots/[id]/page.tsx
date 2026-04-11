@@ -113,9 +113,9 @@ export default function ChatbotDetailPage({
         </span>
       </motion.div>
 
+      <EmbedSection embedKey={chatbot.embedKey} />
       <SettingsSection chatbot={chatbot} onUpdate={setChatbot} />
       <BrandingSection chatbot={chatbot} onUpdate={setChatbot} />
-      <EmbedSection embedKey={chatbot.embedKey} />
       <KnowledgeSection
         chatbotId={id}
         documents={documents}

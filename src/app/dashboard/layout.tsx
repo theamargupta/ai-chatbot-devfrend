@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Users,
+  Play,
 } from "lucide-react";
 
 interface INavItem {
@@ -24,6 +25,7 @@ const navItems: INavItem[] = [
   { label: "Chatbots", href: "/dashboard/chatbots", icon: <MessageSquare className="size-4" /> },
   { label: "Conversations", href: "/dashboard/conversations", icon: <MessagesSquare className="size-4" /> },
   { label: "Leads", href: "/dashboard/leads", icon: <Users className="size-4" /> },
+  { label: "Demo", href: "/dashboard/demo", icon: <Play className="size-4" /> },
   { label: "Settings", href: "/dashboard/settings", icon: <Settings className="size-4" /> },
 ];
 
