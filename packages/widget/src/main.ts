@@ -19,7 +19,7 @@ const _widgetScript: HTMLScriptElement | null =
   (document.currentScript as HTMLScriptElement | null) ??
   document.querySelector<HTMLScriptElement>('script[data-embed-key]');
 
-function getConfig(): IWidgetConfig {
+function getLocalConfig(): IWidgetConfig {
   const script = _widgetScript;
 
   return {
@@ -35,6 +35,45 @@ function getConfig(): IWidgetConfig {
     collectLead: script?.getAttribute('data-collect-lead') !== 'false',
     showEscalation: script?.getAttribute('data-show-escalation') !== 'false',
   };
+}
+
+async function fetchRemoteConfig(local: IWidgetConfig): Promise<IWidgetConfig> {
+  if (!local.embedKey || !local.apiUrl) return local;
+
+  try {
+    const res = await fetch(
+      `${local.apiUrl}/api/widget/config?embed_key=${encodeURIComponent(local.embedKey)}`,
+    );
+    if (!res.ok) return local;
+
+    const json = await res.json() as {
+      success: boolean;
+      config?: {
+        primaryColor?: string;
+        title?: string;
+        welcomeMessage?: string;
+        position?: 'left' | 'right';
+        collectLead?: boolean;
+        showEscalation?: boolean;
+      };
+    };
+
+    if (!json.success || !json.config) return local;
+
+    const c = json.config;
+    return {
+      ...local,
+      primaryColor: c.primaryColor ?? local.primaryColor,
+      title: c.title ?? local.title,
+      welcomeMessage: c.welcomeMessage ?? local.welcomeMessage,
+      position: c.position ?? local.position,
+      collectLead: c.collectLead ?? local.collectLead,
+      showEscalation: c.showEscalation ?? local.showEscalation,
+    };
+  } catch {
+    // Network error — fall back to data-* attributes
+    return local;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1155,15 +1194,16 @@ function createWidget(config: IWidgetConfig): void {
 // Init
 // ---------------------------------------------------------------------------
 
-function init(): void {
-  const config = getConfig();
+async function init(): Promise<void> {
+  const local = getLocalConfig();
+  const config = await fetchRemoteConfig(local);
   createWidget(config);
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => { void init(); });
 } else {
-  init();
+  void init();
 }
 
 export { init };
