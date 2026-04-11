@@ -2,7 +2,6 @@ import "server-only";
 
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { chunkText } from "@/lib/ai/chunker";
-import { generateEmbeddings } from "@/lib/ai/embeddings";
 
 export async function processDocument(documentId: string): Promise<number> {
   const supabase = getSupabaseAdmin();
@@ -36,19 +35,28 @@ export async function processDocument(documentId: string): Promise<number> {
       `[process] Document ${documentId}: generated ${chunks.length} chunks`,
     );
 
+    // Dynamically import embeddings to avoid module-level crash
+    const { generateEmbeddings } = await import("@/lib/ai/embeddings");
+
     // Generate embeddings for all chunks
     const texts = chunks.map((c) => c.content);
     const embeddings = await generateEmbeddings(texts);
 
-    // Insert all chunks with embeddings
+    // Insert all chunks — with or without embeddings
     const chunkRows = chunks.map((chunk, i) => ({
       document_id: documentId,
       content: chunk.content,
       chunk_index: chunk.chunkIndex,
       token_count: chunk.tokenCount,
-      embedding: JSON.stringify(embeddings[i]),
+      ...(embeddings ? { embedding: JSON.stringify(embeddings[i]) } : {}),
       ...(doc.chatbot_id ? { chatbot_id: doc.chatbot_id } : {}),
     }));
+
+    if (!embeddings) {
+      console.warn(
+        "[process] Embeddings disabled — chunks saved without vectors",
+      );
+    }
 
     const { error: insertError } = await supabase
       .from("chunks")

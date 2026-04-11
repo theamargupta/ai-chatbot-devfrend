@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v4";
 import { getAnthropicClient, MODEL, buildSystemPrompt } from "@/lib/ai/utils";
-import { generateEmbedding } from "@/lib/ai/embeddings";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -92,7 +91,18 @@ async function retrieveContext(
       return [];
     }
 
-    const queryEmbedding = await generateEmbedding(query);
+    // Dynamic import to avoid module-level crash from @xenova/transformers
+    const embeddings = await import("@/lib/ai/embeddings").catch(() => null);
+    if (!embeddings) {
+      console.warn("[rag] Embeddings module unavailable — skipping RAG");
+      return [];
+    }
+
+    const queryEmbedding = await embeddings.generateEmbedding(query);
+    if (!queryEmbedding) {
+      console.warn("[rag] Embedding generation returned null — skipping RAG");
+      return [];
+    }
 
     const rpcParams: Record<string, unknown> = {
       query_embedding: queryEmbedding,
