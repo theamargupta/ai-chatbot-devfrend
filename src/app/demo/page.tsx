@@ -5,7 +5,7 @@ import { ChatWindow } from "@/components/chat/chat-window";
 import { ChatInput } from "@/components/chat/chat-input";
 import { useChat } from "@/hooks/useChat";
 
-export default function ChatPage() {
+export default function DemoPage() {
   const {
     messages,
     isStreaming,
@@ -31,9 +31,15 @@ export default function ChatPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-sm font-bold text-primary-foreground">AI</span>
             </div>
-            <h1 className="text-sm font-semibold tracking-tight">AI Chat</h1>
+            <h1 className="text-sm font-semibold tracking-tight">AI Chat Demo</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              Home
+            </Link>
             <Link
               href="/knowledge"
               className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

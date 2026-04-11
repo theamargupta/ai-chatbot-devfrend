@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "cd packages/widget && npm run build && cd ../.. && next build",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "cd packages/widget && npm install",
     "widget:build": "cd packages/widget && npm run build",
     "widget:dev": "cd packages/widget && npm run dev"
   },

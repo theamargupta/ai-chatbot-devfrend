@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Chat Devfrend
 
-## Getting Started
+AI-powered customer support chatbot. Upload your content, embed on any website, answer customers 24/7.
 
-First, run the development server:
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router, Turbopack)
+- **UI:** React 19, Tailwind CSS v4, ShadCN UI v4
+- **LLM:** Anthropic Claude (streaming via SSE)
+- **Database:** Supabase (PostgreSQL + pgvector)
+- **Embeddings:** Xenova/Transformers (local, no API cost)
+- **Email:** Resend (escalation notifications)
+- **Widget:** Vanilla JS, 3.9KB gzipped, Shadow DOM
+
+## Features
+
+- RAG pipeline — answers grounded in your uploaded content
+- Embeddable chat widget — single script tag, works on any website
+- Custom branding — colors, logo, welcome message
+- Lead capture — collect emails before or during chat
+- Human escalation — seamless handoff when AI can't help
+- Conversation analytics — view all chats, track popular questions
+- Multi-tenant dashboard — manage multiple chatbots
+- Rate limiting — protect public endpoints
+
+## Quick Start
 
 ```bash
+# Clone
+git clone https://github.com/theamargupta/ai-chat-devfrend.git
+cd ai-chat-devfrend
+
+# Install dependencies (also installs widget deps via postinstall)
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your keys
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the landing page.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment (Vercel)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Push to GitHub
+2. Import the repo on [vercel.com/new](https://vercel.com/new)
+3. Add environment variables in Vercel project settings (see `.env.example`)
+4. Deploy — Vercel auto-detects Next.js and runs the build command
 
-## Learn More
+The `vercel.json` and `postinstall` script handle the widget build automatically.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  app/
+    page.tsx              # Marketing landing page
+    demo/page.tsx         # Live chat demo
+    login/page.tsx        # Authentication
+    dashboard/            # Multi-tenant admin dashboard
+    knowledge/page.tsx    # Knowledge base management
+    api/                  # API routes (chat, auth, dashboard, knowledge)
+  components/
+    chat/                 # Chat-specific components
+    ui/                   # ShadCN components
+  lib/
+    ai/                   # Claude API + RAG utilities
+    config.ts             # Base URL helper
+  hooks/                  # Custom React hooks
+  types/index.ts          # TypeScript interfaces
+packages/
+  widget/                 # Embeddable chat widget (Vite build)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+<!-- Screenshot placeholder: add a screenshot of the landing page here -->
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MIT
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+Built by [Amar Gupta](https://amargupta.tech)

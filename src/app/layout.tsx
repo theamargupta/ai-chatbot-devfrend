@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Chat | Devfrend",
-  description: "AI-powered customer support chatbot",
+  title: "Devfrend — AI Customer Support That Knows Your Business",
+  description:
+    "Add an AI chatbot to your website in 2 minutes. Trained on your content. Answers customers 24/7.",
 };
 
 export default function RootLayout({

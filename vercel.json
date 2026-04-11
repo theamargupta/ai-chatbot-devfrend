@@ -1,0 +1,15 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "cd packages/widget && npm run build && cd ../.. && next build",
+  "installCommand": "npm install && cd packages/widget && npm install",
+  "outputDirectory": ".next",
+  "headers": [
+    {
+      "source": "/widget.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}

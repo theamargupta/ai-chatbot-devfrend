@@ -84,9 +84,12 @@ export default function KnowledgePage() {
   );
   const [copied, setCopied] = useState(false);
 
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "https://your-domain.vercel.app";
+
   const embedCode = `<script
-  src="http://localhost:3000/widget.js"
-  data-api-url="http://localhost:3000"
+  src="${origin}/widget.js"
+  data-api-url="${origin}"
   data-primary-color="${widgetColor}"
   data-title="${widgetTitle}"
   data-welcome-message="${widgetWelcome}"
