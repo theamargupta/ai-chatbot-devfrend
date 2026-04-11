@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"console.log\\(require\\('zod/package.json'\\).version\\)\")",
+      "mcp__claude_ai_Context7__resolve-library-id",
+      "mcp__claude_ai_Context7__query-docs",
+      "Bash(node -e \"const z = require\\('zod/v4'\\); console.log\\('zod v4 ok'\\)\")",
+      "Bash(node -e \"const z = require\\('zod'\\); console.log\\('zod ok, version:', z.z?.version || 'unknown'\\)\")"
+    ]
+  }
+}
