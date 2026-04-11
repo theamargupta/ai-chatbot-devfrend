@@ -16,6 +16,25 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/api/widget/config",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          { key: "Pragma", value: "no-cache" },
+        ],
+      },
+      {
+        source: "/api/dashboard/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store",
+          },
+        ],
+      },
+      {
         source: "/widget.js",
         headers: [
           {

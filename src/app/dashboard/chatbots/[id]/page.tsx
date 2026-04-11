@@ -34,8 +34,8 @@ export default function ChatbotDetailPage({
     async function load() {
       try {
         const [botRes, docsRes] = await Promise.all([
-          fetch(`/api/dashboard/chatbots/${id}`),
-          fetch(`/api/knowledge/documents?chatbot_id=${id}`),
+          fetch(`/api/dashboard/chatbots/${id}`, { cache: "no-store" }),
+          fetch(`/api/knowledge/documents?chatbot_id=${id}`, { cache: "no-store" }),
         ]);
 
         const botData = await botRes.json();
@@ -296,7 +296,16 @@ function BrandingSection({
     });
     const data = await res.json();
     if (data.success) {
-      onUpdate(data.chatbot);
+      // Re-fetch to ensure we have the latest server state
+      const freshRes = await fetch(`/api/dashboard/chatbots/${chatbot.id}`, {
+        cache: "no-store",
+      });
+      const freshData = await freshRes.json();
+      if (freshData.success) {
+        onUpdate(freshData.chatbot);
+      } else {
+        onUpdate(data.chatbot);
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }

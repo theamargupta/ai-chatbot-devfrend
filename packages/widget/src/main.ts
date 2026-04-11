@@ -42,7 +42,8 @@ async function fetchRemoteConfig(local: IWidgetConfig): Promise<IWidgetConfig> {
 
   try {
     const res = await fetch(
-      `${local.apiUrl}/api/widget/config?embed_key=${encodeURIComponent(local.embedKey)}`,
+      `${local.apiUrl}/api/widget/config?embed_key=${encodeURIComponent(local.embedKey)}&_t=${Date.now()}`,
+      { cache: 'no-store' },
     );
     if (!res.ok) return local;
 

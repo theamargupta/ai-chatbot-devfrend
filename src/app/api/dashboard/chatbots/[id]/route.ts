@@ -49,20 +49,27 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      chatbot: {
-        id: data.id,
-        businessId: data.business_id,
-        name: data.name,
-        systemPrompt: data.system_prompt,
-        branding: data.branding,
-        embedKey: data.embed_key,
-        isActive: data.is_active,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
+    return NextResponse.json(
+      {
+        success: true,
+        chatbot: {
+          id: data.id,
+          businessId: data.business_id,
+          name: data.name,
+          systemPrompt: data.system_prompt,
+          branding: data.branding,
+          embedKey: data.embed_key,
+          isActive: data.is_active,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
   } catch (err) {
     console.error("Chatbot get error:", err);
     return NextResponse.json(

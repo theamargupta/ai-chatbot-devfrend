@@ -70,7 +70,8 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         ...corsHeaders,
-        "Cache-Control": "public, max-age=60",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
       },
     },
   );
