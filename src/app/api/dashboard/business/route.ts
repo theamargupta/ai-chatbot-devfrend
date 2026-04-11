@@ -73,6 +73,59 @@ export async function GET() {
   }
 }
 
+export async function PATCH(request: Request) {
+  try {
+    const supabase = await getSupabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const body = (await request.json()) as { name?: string };
+    const name = body.name?.trim();
+
+    if (!name) {
+      return NextResponse.json(
+        { success: false, error: "Business name is required" },
+        { status: 400 },
+      );
+    }
+
+    const admin = getSupabaseAdmin();
+    const { data: updated, error } = await admin
+      .from("businesses")
+      .update({ name })
+      .eq("owner_id", user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Business update error:", error);
+      return NextResponse.json(
+        { success: false, error: "Failed to update business" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      business: mapBusiness(updated),
+    });
+  } catch (err) {
+    console.error("Business PATCH error:", err);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
 function mapBusiness(row: Record<string, unknown>) {
   return {
     id: row.id,

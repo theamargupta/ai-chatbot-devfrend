@@ -22,7 +22,8 @@
       "Bash(npx shadcn@latest add label --yes)",
       "Bash(npx shadcn@latest add dialog --yes)",
       "Bash(npx vite:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mv:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
