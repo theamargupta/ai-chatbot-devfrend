@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import { Settings, Loader2 } from "lucide-react";
 
 interface IBusiness {
@@ -70,21 +60,16 @@ export default function SettingsPage() {
     setSaving(false);
   }
 
-  function planVariant(plan: string) {
-    switch (plan) {
-      case "pro":
-        return "default" as const;
-      case "enterprise":
-        return "destructive" as const;
-      default:
-        return "secondary" as const;
-    }
-  }
+  const planColors: Record<string, string> = {
+    pro: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    enterprise: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    free: "bg-white/5 text-white/50 border-white/10",
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading settings...</p>
+        <p className="text-white/40">Loading settings...</p>
       </div>
     );
   }
@@ -92,76 +77,98 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-white">
+          Settings
+        </h1>
+        <p className="text-sm text-white/40">
           Manage your account and business settings
         </p>
       </div>
 
       {/* Account */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="size-4" />
-            Account
-          </CardTitle>
-          <CardDescription>Your account details</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl"
+      >
+        <div className="mb-6 flex items-center gap-2">
+          <Settings className="size-4 text-white/40" />
+          <h2 className="text-lg font-semibold text-white">Account</h2>
+        </div>
+        <p className="mb-1 text-sm text-white/40">Your account details</p>
+
+        <div className="mt-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" value={email} disabled />
+            <label className="text-sm font-medium text-white/60">Email</label>
+            <input
+              value={email}
+              disabled
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white/40"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Plan</Label>
+            <label className="text-sm font-medium text-white/60">Plan</label>
             <div>
-              <Badge variant={planVariant(business?.plan ?? "free")}>
+              <span
+                className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
+                  planColors[business?.plan ?? "free"] ?? planColors.free
+                }`}
+              >
                 {(business?.plan ?? "free").toUpperCase()}
-              </Badge>
+              </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
 
       {/* Business */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Business</CardTitle>
-          <CardDescription>
-            Your business name appears in chatbot conversations
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl"
+      >
+        <h2 className="text-lg font-semibold text-white">Business</h2>
+        <p className="mt-1 text-sm text-white/40">
+          Your business name appears in chatbot conversations
+        </p>
+
+        <div className="mt-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="business-name">Business name</Label>
-            <Input
-              id="business-name"
+            <label className="text-sm font-medium text-white/60">
+              Business name
+            </label>
+            <input
               value={businessName}
               onChange={(e) => {
                 setBusinessName(e.target.value);
                 setSaved(false);
               }}
               placeholder="My Business"
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
+          <div className="flex items-center gap-3">
+            <button
               onClick={handleSave}
               disabled={
-                saving || !businessName.trim() || businessName.trim() === business?.name
+                saving ||
+                !businessName.trim() ||
+                businessName.trim() === business?.name
               }
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 text-sm font-medium text-white shadow-lg shadow-purple-500/20 transition-all duration-200 hover:shadow-xl disabled:opacity-50"
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               Save
-            </Button>
+            </button>
             {saved && (
-              <span className="text-sm text-green-600">Saved!</span>
+              <span className="text-sm text-green-400">Saved!</span>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     </div>
   );
 }

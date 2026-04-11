@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import { MessageSquare, Clock, User } from "lucide-react";
 
 interface IConversationListItem {
@@ -82,23 +80,23 @@ export default function ConversationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Conversations</h1>
-          <p className="text-sm text-muted-foreground">
-            Review chat conversations from your visitors
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-white">
+          Conversations
+        </h1>
+        <p className="text-sm text-white/40">
+          Review chat conversations from your visitors
+        </p>
       </div>
 
       {/* Filter */}
       {chatbots.length > 1 && (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Filter:</span>
+          <span className="text-sm text-white/40">Filter:</span>
           <select
             value={selectedChatbot}
             onChange={(e) => setSelectedChatbot(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white/60 outline-none transition-all duration-200 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
           >
             <option value="">All chatbots</option>
             {chatbots.map((bot) => (
@@ -112,43 +110,58 @@ export default function ConversationsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">Loading conversations...</p>
+          <p className="text-white/40">Loading conversations...</p>
         </div>
       ) : conversations.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12">
-            <MessageSquare className="size-8 text-muted-foreground" />
-            <p className="text-muted-foreground">No conversations yet</p>
-            <p className="text-xs text-muted-foreground">
-              Conversations will appear here when visitors use your chatbot
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/5 py-16 backdrop-blur-xl">
+          <MessageSquare className="size-8 text-white/20" />
+          <p className="text-white/40">No conversations yet</p>
+          <p className="text-xs text-white/25">
+            Conversations will appear here when visitors use your chatbot
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {conversations.map((conv) => (
-            <Card
+          {conversations.map((conv, i) => (
+            <motion.div
               key={conv.id}
-              className="cursor-pointer transition-colors hover:bg-muted/50"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.05 }}
               onClick={() =>
                 router.push(`/dashboard/conversations/${conv.id}`)
               }
+              className="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-xl transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08]"
             >
-              <CardContent className="flex items-center gap-4 py-3">
+              <div className="flex items-center gap-4">
+                {/* Visitor avatar */}
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 text-xs font-bold text-white/60">
+                  {conv.visitorId.slice(0, 2).toUpperCase()}
+                </div>
+
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium text-white">
                       {conv.chatbotName}
                     </span>
-                    <Badge
-                      variant={
-                        conv.status === "active" ? "default" : "secondary"
-                      }
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                        conv.status === "active"
+                          ? "bg-green-500/10 text-green-400"
+                          : "bg-white/5 text-white/30"
+                      }`}
                     >
+                      <span
+                        className={`h-1 w-1 rounded-full ${
+                          conv.status === "active"
+                            ? "bg-green-400"
+                            : "bg-white/30"
+                        }`}
+                      />
                       {conv.status}
-                    </Badge>
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 text-xs text-white/30">
                     <span className="flex items-center gap-1">
                       <User className="size-3" />
                       {conv.visitorId.slice(0, 8)}...
@@ -163,13 +176,13 @@ export default function ConversationsPage() {
                     </span>
                   </div>
                   {conv.lastMessagePreview && (
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+                    <p className="mt-1 text-xs text-white/25 line-clamp-1">
                       {conv.lastMessagePreview}
                     </p>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
           ))}
         </div>
       )}

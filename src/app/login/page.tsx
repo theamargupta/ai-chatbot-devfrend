@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -59,22 +56,50 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Sign in to Devfrend Chat</CardTitle>
-          <CardDescription>
-            {isSignUp
-              ? "Create your account to get started"
-              : "Enter your credentials to continue"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <Button
-            variant="outline"
-            className="w-full"
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0a0a0f] px-4">
+      {/* Animated gradient orbs */}
+      <motion.div
+        animate={{ x: [0, 50, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        className="pointer-events-none absolute top-1/3 left-1/4 h-80 w-80 rounded-full bg-purple-500/15 blur-3xl"
+      />
+      <motion.div
+        animate={{ x: [0, -40, 0], y: [0, 40, 0], scale: [1.05, 1, 1.05] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        className="pointer-events-none absolute bottom-1/3 right-1/4 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl"
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl"
+      >
+        {/* Logo */}
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500">
+            <span className="text-sm font-bold text-white">AI</span>
+          </div>
+        </div>
+
+        <h1 className="text-center text-xl font-bold text-white">
+          Sign in to{" "}
+          <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+            Devfrend Chat
+          </span>
+        </h1>
+        <p className="mt-2 text-center text-sm text-white/40">
+          {isSignUp
+            ? "Create your account to get started"
+            : "Enter your credentials to continue"}
+        </p>
+
+        <div className="mt-8 flex flex-col gap-4">
+          {/* Google */}
+          <button
             onClick={handleGoogleSignIn}
             type="button"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-black transition-all duration-200 hover:bg-white/90"
           >
             <svg className="size-4" viewBox="0 0 24 24">
               <path
@@ -95,23 +120,27 @@ export default function LoginPage() {
               />
             </svg>
             Continue with Google
-          </Button>
+          </button>
 
+          {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
+              <span className="bg-[#0a0a0f] px-2 text-white/30">
                 or continue with email
               </span>
             </div>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
+              <label htmlFor="email" className="text-sm font-medium text-white/60">
+                Email
+              </label>
+              <input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
@@ -119,12 +148,15 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
+              <label htmlFor="password" className="text-sm font-medium text-white/60">
+                Password
+              </label>
+              <input
                 id="password"
                 type="password"
                 placeholder="••••••••"
@@ -133,23 +165,30 @@ export default function LoginPage() {
                 required
                 minLength={6}
                 autoComplete={isSignUp ? "new-password" : "current-password"}
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-sm text-red-400">{error}</p>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="h-11 w-full rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-sm font-medium text-white shadow-lg shadow-purple-500/20 transition-all duration-200 disabled:opacity-50"
+            >
               {loading
                 ? "Loading..."
                 : isSignUp
                   ? "Create account"
                   : "Sign in"}
-            </Button>
+            </motion.button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-white/40">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
@@ -157,13 +196,13 @@ export default function LoginPage() {
                 setIsSignUp(!isSignUp);
                 setError(null);
               }}
-              className="text-primary underline-offset-4 hover:underline"
+              className="text-purple-400 underline-offset-4 hover:underline"
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     </div>
   );
 }
