@@ -91,7 +91,6 @@ async function retrieveContext(
       return [];
     }
 
-    // Dynamic import to avoid module-level crash from @xenova/transformers
     const embeddings = await import("@/lib/ai/embeddings").catch(() => null);
     if (!embeddings) {
       console.warn("[rag] Embeddings module unavailable — skipping RAG");

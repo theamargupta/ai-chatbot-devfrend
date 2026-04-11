@@ -12,6 +12,13 @@ const serverEnvSchema = z.object({
       message:
         "ANTHROPIC_API_KEY must start with 'sk-ant-'. Get a valid key from console.anthropic.com",
     }),
+  OPENAI_API_KEY: z
+    .string()
+    .startsWith("sk-", {
+      message:
+        "OPENAI_API_KEY must start with 'sk-'. Get a valid key from platform.openai.com",
+    })
+    .optional(),
   NEXT_PUBLIC_SUPABASE_URL: z
     .string({
       error:
@@ -41,6 +48,7 @@ export function getEnv(): ServerEnv {
   if (!cachedEnv) {
     cachedEnv = serverEnvSchema.parse({
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,

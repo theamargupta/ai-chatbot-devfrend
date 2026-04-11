@@ -23,7 +23,9 @@
       "Bash(npx shadcn@latest add dialog --yes)",
       "Bash(npx vite:*)",
       "Bash(rm:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(rm -rf .next/dev .next/.DS_Store)",
+      "Bash(rmdir .next)"
     ]
   },
   "enableAllProjectMcpServers": true,

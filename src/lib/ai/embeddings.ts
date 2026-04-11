@@ -1,72 +1,42 @@
 import "server-only";
 
-const EMBEDDING_MODEL = "Xenova/all-MiniLM-L6-v2";
-const BATCH_SIZE = 10;
+import OpenAI from "openai";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type EmbeddingPipeline = any;
+const EMBEDDING_MODEL = "text-embedding-3-small";
+const EMBEDDING_DIMENSIONS = 384;
 
-let pipelineInstance: EmbeddingPipeline | null = null;
-let pipelineLoading: Promise<EmbeddingPipeline | null> | null = null;
-let pipelineFailed = false;
+let openaiClient: OpenAI | null = null;
 
-async function getEmbeddingPipeline(): Promise<EmbeddingPipeline | null> {
-  if (process.env.EMBEDDINGS_ENABLED === "false") {
+function getOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
     return null;
   }
 
-  if (pipelineFailed) {
-    return null;
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey });
   }
 
-  if (pipelineInstance) {
-    return pipelineInstance;
-  }
-
-  if (pipelineLoading) {
-    return pipelineLoading;
-  }
-
-  pipelineLoading = (async () => {
-    try {
-      const { pipeline } = await import("@xenova/transformers");
-      console.log(`[embeddings] Loading model ${EMBEDDING_MODEL}...`);
-      const pipe = await pipeline("feature-extraction", EMBEDDING_MODEL);
-      console.log(
-        `[embeddings] Model ${EMBEDDING_MODEL} loaded successfully.`,
-      );
-      pipelineInstance = pipe;
-      return pipe;
-    } catch (err) {
-      pipelineFailed = true;
-      console.warn(
-        "[embeddings] Failed to load embedding model:",
-        err instanceof Error ? err.message : err,
-      );
-      return null;
-    }
-  })();
-
-  return pipelineLoading;
-}
-
-function normalizeVector(vector: number[]): number[] {
-  const magnitude = Math.sqrt(
-    vector.reduce((sum, val) => sum + val * val, 0),
-  );
-  if (magnitude === 0) return vector;
-  return vector.map((val) => val / magnitude);
+  return openaiClient;
 }
 
 export async function generateEmbedding(
   text: string,
 ): Promise<number[] | null> {
   try {
-    const pipe = await getEmbeddingPipeline();
-    if (!pipe) return null;
-    const output = await pipe(text, { pooling: "mean", normalize: true });
-    const embedding = Array.from(output.data as Float32Array).slice(0, 384);
-    return normalizeVector(embedding);
+    const client = getOpenAIClient();
+    if (!client) {
+      console.warn("[embeddings] OPENAI_API_KEY not set — skipping embedding");
+      return null;
+    }
+
+    const response = await client.embeddings.create({
+      model: EMBEDDING_MODEL,
+      input: text,
+      dimensions: EMBEDDING_DIMENSIONS,
+    });
+
+    return response.data[0].embedding;
   } catch (err) {
     console.warn(
       "[embeddings] generateEmbedding failed:",
@@ -80,27 +50,19 @@ export async function generateEmbeddings(
   texts: string[],
 ): Promise<number[][] | null> {
   try {
-    const results: number[][] = [];
-
-    for (let i = 0; i < texts.length; i += BATCH_SIZE) {
-      const batch = texts.slice(i, i + BATCH_SIZE);
-      console.log(
-        `[embeddings] Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(texts.length / BATCH_SIZE)} (${batch.length} texts)`,
-      );
-
-      const batchResults = await Promise.all(
-        batch.map((text) => generateEmbedding(text)),
-      );
-
-      // If any embedding failed, return null
-      if (batchResults.some((r) => r === null)) {
-        return null;
-      }
-
-      results.push(...(batchResults as number[][]));
+    const client = getOpenAIClient();
+    if (!client) {
+      console.warn("[embeddings] OPENAI_API_KEY not set — skipping embeddings");
+      return null;
     }
 
-    return results;
+    const response = await client.embeddings.create({
+      model: EMBEDDING_MODEL,
+      input: texts,
+      dimensions: EMBEDDING_DIMENSIONS,
+    });
+
+    return response.data.map((item) => item.embedding);
   } catch (err) {
     console.warn(
       "[embeddings] generateEmbeddings failed:",
