@@ -32,7 +32,10 @@ import {
   Upload,
   Globe,
   FileText,
+  ExternalLink,
+  MessageCircle,
 } from "lucide-react";
+import Link from "next/link";
 import type { IChatbot, IDocument, IBranding } from "@/types";
 
 export default function ChatbotDetailPage({
@@ -381,14 +384,35 @@ function EmbedSection({ embedKey }: { embedKey: string }) {
         <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">
           <code>{embedCode}</code>
         </pre>
-        <Button variant="outline" onClick={handleCopy} className="w-fit">
-          {copied ? (
-            <Check className="size-4" />
-          ) : (
-            <Copy className="size-4" />
-          )}
-          {copied ? "Copied" : "Copy code"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={handleCopy} className="w-fit">
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
+            {copied ? "Copied" : "Copy code"}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-fit"
+            onClick={() =>
+              window.open(
+                `/test-widget?embed_key=${embedKey}`,
+                "_blank"
+              )
+            }
+          >
+            <ExternalLink className="size-4" />
+            Test Widget
+          </Button>
+          <Button variant="outline" className="w-fit" asChild>
+            <Link href="/demo">
+              <MessageCircle className="size-4" />
+              Open Demo Chat
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
