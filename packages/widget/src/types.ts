@@ -5,6 +5,13 @@ export interface IWidgetConfig {
   title: string;
   welcomeMessage: string;
   position: 'left' | 'right';
+  collectLead: boolean;
+  showEscalation: boolean;
+}
+
+export interface ILeadData {
+  name: string;
+  email: string;
 }
 
 export interface IMessage {

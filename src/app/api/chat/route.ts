@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { getAnthropicClient, MODEL, buildSystemPrompt } from "@/lib/ai/utils";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // ---------------------------------------------------------------------------
 // CORS — widget runs on a different origin
@@ -237,6 +238,17 @@ export async function POST(req: NextRequest) {
 
   const { messages, embedKey, chatbotId: requestChatbotId } = parsed.data;
   const visitorId = req.headers.get("X-Visitor-ID") ?? "anonymous";
+
+  // Rate limit by visitor (skip for anonymous/direct usage)
+  if (visitorId !== "anonymous") {
+    const { allowed } = checkRateLimit(`chat:${visitorId}`, 20, 60 * 1000);
+    if (!allowed) {
+      return createErrorResponse(
+        429,
+        "Too many messages. Please wait a moment.",
+      );
+    }
+  }
 
   // Resolve chatbot (if widget or scoped request)
   const chatbot = await resolveChatbot(embedKey, requestChatbotId);

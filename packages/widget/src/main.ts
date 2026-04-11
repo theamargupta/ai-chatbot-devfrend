@@ -1,4 +1,4 @@
-import type { IWidgetConfig, IMessage } from './types';
+import type { IWidgetConfig, IMessage, ILeadData } from './types';
 
 // ---------------------------------------------------------------------------
 // SSE event types (must match server: src/app/api/chat/route.ts)
@@ -38,6 +38,8 @@ function getConfig(): IWidgetConfig {
       'Hi! How can I help you today?',
     position:
       (script?.getAttribute('data-position') as 'left' | 'right') ?? 'right',
+    collectLead: script?.getAttribute('data-collect-lead') !== 'false',
+    showEscalation: script?.getAttribute('data-show-escalation') !== 'false',
   };
 }
 
@@ -66,6 +68,33 @@ function getVisitorId(): string {
     // best-effort
   }
   return id;
+}
+
+// ---------------------------------------------------------------------------
+// Lead data (persisted in localStorage)
+// ---------------------------------------------------------------------------
+
+const LEAD_KEY = 'devfrend-chat-lead';
+
+function getSavedLead(): ILeadData | null {
+  try {
+    const stored = localStorage.getItem(LEAD_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as ILeadData;
+      if (parsed.email) return parsed;
+    }
+  } catch {
+    // localStorage may be blocked
+  }
+  return null;
+}
+
+function saveLead(lead: ILeadData): void {
+  try {
+    localStorage.setItem(LEAD_KEY, JSON.stringify(lead));
+  } catch {
+    // best-effort
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +143,17 @@ function svgIcon(paths: string[], viewBox = '0 0 24 24'): SVGSVGElement {
     svg.appendChild(path);
   }
   return svg;
+}
+
+// ---------------------------------------------------------------------------
+// Simple markdown for assistant messages
+// ---------------------------------------------------------------------------
+
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
 }
 
 // ---------------------------------------------------------------------------
@@ -323,6 +363,88 @@ function buildStyles(config: IWidgetConfig): string {
     .df-send:disabled { opacity: 0.4; cursor: not-allowed; }
     .df-send svg { width: 16px; height: 16px; }
 
+    /* ---- Toast notification ---- */
+    .df-toast {
+      position: absolute;
+      bottom: 70px;
+      left: 16px;
+      right: 16px;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      text-align: center;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    .df-toast.df-toast-hidden { opacity: 0; pointer-events: none; }
+
+    /* ---- Escalation link ---- */
+    .df-escalate {
+      text-align: center;
+      padding: 4px 16px 8px;
+      background: #ffffff;
+    }
+    .df-escalate-link {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .df-escalate-link:hover { color: #6b7280; }
+
+    /* ---- Lead form ---- */
+    .df-lead-form {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .df-lead-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      color: #1f2937;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .df-lead-input:focus {
+      border-color: ${pc};
+    }
+    .df-lead-input::placeholder { color: #9ca3af; }
+    .df-lead-btn {
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: ${pc};
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .df-lead-btn:hover { opacity: 0.9; }
+    .df-lead-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .df-lead-error {
+      color: #ef4444;
+      font-size: 12px;
+      margin-top: -8px;
+    }
+
     /* ---- Dark mode ---- */
     @media (prefers-color-scheme: dark) {
       .df-window { background: #1f2937; }
@@ -333,6 +455,11 @@ function buildStyles(config: IWidgetConfig): string {
       .df-input::placeholder { color: #6b7280; }
       .df-typing { background: #374151; }
       .df-typing-dot { background: #6b7280; }
+      .df-escalate { background: #1f2937; }
+      .df-escalate-link { color: #6b7280; }
+      .df-escalate-link:hover { color: #9ca3af; }
+      .df-lead-input { background: #374151; color: #f3f4f6; border-color: #4b5563; }
+      .df-lead-input::placeholder { color: #6b7280; }
     }
 
     /* ---- Mobile fullscreen ---- */
@@ -403,6 +530,10 @@ function createWidget(config: IWidgetConfig): void {
     isStreaming: false,
   };
 
+  // Lead capture state
+  let leadData: ILeadData | null = config.collectLead ? getSavedLead() : null;
+  const needsLeadForm = config.collectLead && !leadData;
+
   // ---- Create bubble ----
   const chatIcon = svgIcon(ICON_CHAT);
   chatIcon.classList.add('df-icon-chat');
@@ -457,11 +588,117 @@ function createWidget(config: IWidgetConfig): void {
     sendBtn,
   ]);
 
+  // ---- Escalation link ----
+  const escalateLink = el('button', undefined, {
+    class: 'df-escalate-link',
+    type: 'button',
+  }, ['Talk to a human']);
+  const escalateBar = el('div', undefined, { class: 'df-escalate' }, [
+    escalateLink,
+  ]);
+
+  if (!config.showEscalation) {
+    escalateBar.style.display = 'none';
+  }
+
+  async function handleEscalate(): Promise<void> {
+    addMessage('assistant', "I'll connect you with a human. The team will reach out to you shortly via email.");
+
+    try {
+      await fetch(`${config.apiUrl}/api/chat/escalate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Visitor-ID': visitorId,
+        },
+        body: JSON.stringify({
+          embedKey: config.embedKey,
+          visitorId,
+          ...(leadData ? { lead: leadData } : {}),
+        }),
+      });
+    } catch {
+      // Non-fatal — message already shown
+    }
+  }
+
+  escalateLink.addEventListener('click', handleEscalate);
+
+  // ---- Toast notification ----
+  const toast = el('div', undefined, { class: 'df-toast df-toast-hidden' });
+  let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showToast(message: string, durationMs: number = 4000): void {
+    toast.textContent = message;
+    toast.classList.remove('df-toast-hidden');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.add('df-toast-hidden');
+    }, durationMs);
+  }
+
+  // ---- Lead capture form ----
+  const leadNameInput = el('input', undefined, {
+    class: 'df-lead-input',
+    type: 'text',
+    placeholder: 'Your name (optional)',
+  });
+  const leadEmailInput = el('input', undefined, {
+    class: 'df-lead-input',
+    type: 'email',
+    placeholder: 'Your email *',
+  });
+  const leadError = el('div', undefined, { class: 'df-lead-error' });
+  leadError.style.display = 'none';
+  const leadSubmitBtn = el('button', undefined, {
+    class: 'df-lead-btn',
+    type: 'button',
+  }, ['Start Chat']);
+  const leadForm = el('div', undefined, { class: 'df-lead-form' }, [
+    leadNameInput,
+    leadEmailInput,
+    leadError,
+    leadSubmitBtn,
+  ]);
+
+  // Hide lead form if not needed, hide input bar if form is shown
+  if (!needsLeadForm) {
+    leadForm.style.display = 'none';
+  } else {
+    inputBar.style.display = 'none';
+  }
+
+  function submitLeadForm(): void {
+    const email = leadEmailInput.value.trim();
+    if (!email || !email.includes('@')) {
+      leadError.textContent = 'Please enter a valid email address.';
+      leadError.style.display = 'block';
+      return;
+    }
+    leadError.style.display = 'none';
+    leadData = { name: leadNameInput.value.trim(), email };
+    saveLead(leadData);
+    leadForm.style.display = 'none';
+    inputBar.style.display = 'flex';
+    input.focus();
+  }
+
+  leadSubmitBtn.addEventListener('click', submitLeadForm);
+  leadEmailInput.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitLeadForm();
+    }
+  });
+
   // Assemble window
   const chatWindow = el('div', undefined, { class: 'df-window' }, [
     header,
     messagesContainer,
+    leadForm,
     inputBar,
+    escalateBar,
+    toast,
   ]);
 
   // Root container
@@ -493,8 +730,12 @@ function createWidget(config: IWidgetConfig): void {
         'div',
         undefined,
         { class: `df-msg df-msg-${msg.role}` },
-        [msg.content],
       );
+      if (msg.role === 'assistant') {
+        msgEl.innerHTML = renderMarkdown(msg.content);
+      } else {
+        msgEl.textContent = msg.content;
+      }
       messagesContainer.appendChild(msgEl);
     }
 
@@ -539,7 +780,11 @@ function createWidget(config: IWidgetConfig): void {
 
     if (state.isOpen) {
       chatWindow.classList.add('df-visible');
-      input.focus();
+      if (leadForm.style.display !== 'none') {
+        leadEmailInput.focus();
+      } else {
+        input.focus();
+      }
       scrollToBottom();
     } else {
       chatWindow.classList.remove('df-visible');
@@ -578,10 +823,18 @@ function createWidget(config: IWidgetConfig): void {
         body: JSON.stringify({
           messages: messagesPayload,
           ...(config.embedKey ? { embedKey: config.embedKey } : {}),
+          ...(leadData ? { lead: leadData } : {}),
         }),
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          showToast("You're sending messages too quickly. Please wait a moment.");
+          // Remove the user message we just added
+          state.messages.pop();
+          renderMessages();
+          return;
+        }
         throw new Error(`HTTP ${response.status}`);
       }
 
@@ -700,4 +953,4 @@ if (document.readyState === 'loading') {
 }
 
 export { init };
-export type { IWidgetConfig, IMessage } from './types';
+export type { IWidgetConfig, IMessage, ILeadData } from './types';

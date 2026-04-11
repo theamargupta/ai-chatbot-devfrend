@@ -290,6 +290,27 @@ function BrandingSection({
               </Button>
             </div>
           </div>
+          <div className="flex flex-col gap-3 border-t pt-4">
+            <Label>Widget Features</Label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={branding.collectLead !== false}
+                onChange={(e) => updateField("collectLead", e.target.checked)}
+                className="size-4 rounded border-input"
+              />
+              Collect leads (show email form before chat)
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={branding.showEscalation !== false}
+                onChange={(e) => updateField("showEscalation", e.target.checked)}
+                className="size-4 rounded border-input"
+              />
+              Show &ldquo;Talk to a human&rdquo; escalation button
+            </label>
+          </div>
           <Button
             onClick={handleSave}
             disabled={saving}

@@ -11,6 +11,8 @@ const updateChatbotSchema = z.object({
       title: z.string().max(100).optional(),
       welcomeMessage: z.string().max(500).optional(),
       position: z.enum(["left", "right"]).optional(),
+      collectLead: z.boolean().optional(),
+      showEscalation: z.boolean().optional(),
     })
     .optional(),
   isActive: z.boolean().optional(),

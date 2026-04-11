@@ -26,6 +26,7 @@ export async function GET() {
 
     let documentCount = 0;
     let conversationCount = 0;
+    let leadCount = 0;
 
     if (chatbotIds.length > 0) {
       const admin = getSupabaseAdmin();
@@ -40,8 +41,14 @@ export async function GET() {
         .select("id", { count: "exact", head: true })
         .in("chatbot_id", chatbotIds);
 
+      const { count: leadsCount } = await admin
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .in("chatbot_id", chatbotIds);
+
       documentCount = docCount ?? 0;
       conversationCount = convCount ?? 0;
+      leadCount = leadsCount ?? 0;
     }
 
     return NextResponse.json({
@@ -50,6 +57,7 @@ export async function GET() {
         chatbots: chatbotCount,
         documents: documentCount,
         conversations: conversationCount,
+        leads: leadCount,
       },
     });
   } catch (err) {

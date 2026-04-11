@@ -56,6 +56,8 @@ export interface IBranding {
   title: string;
   welcomeMessage: string;
   position: "left" | "right";
+  collectLead?: boolean;
+  showEscalation?: boolean;
 }
 
 export interface IBusiness {
