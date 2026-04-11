@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 
 /**
  * Supabase client using the anon key.
@@ -9,8 +9,8 @@ import { env } from "@/lib/env";
  */
 export function getSupabaseClient() {
   return createClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    getEnv().NEXT_PUBLIC_SUPABASE_URL,
+    getEnv().NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
 }
 
@@ -20,7 +20,7 @@ export function getSupabaseClient() {
  */
 export function getSupabaseAdmin() {
   return createClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY,
+    getEnv().NEXT_PUBLIC_SUPABASE_URL,
+    getEnv().SUPABASE_SERVICE_ROLE_KEY,
   );
 }

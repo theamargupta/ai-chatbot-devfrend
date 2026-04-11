@@ -28,12 +28,26 @@ const serverEnvSchema = z.object({
   }),
 });
 
-export const env = serverEnvSchema.parse({
-  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-});
+type ServerEnv = z.infer<typeof serverEnvSchema>;
+
+let cachedEnv: ServerEnv | null = null;
+
+/**
+ * Lazily validates and returns server environment variables.
+ * Validation happens on first call (at runtime), NOT at import time,
+ * so the build doesn't fail when env vars are unavailable.
+ */
+export function getEnv(): ServerEnv {
+  if (!cachedEnv) {
+    cachedEnv = serverEnvSchema.parse({
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    });
+  }
+  return cachedEnv;
+}
 
 /**
  * Client-safe environment variables.
@@ -50,7 +64,19 @@ const clientEnvSchema = z.object({
   }),
 });
 
-export const clientEnv = clientEnvSchema.parse({
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-});
+type ClientEnv = z.infer<typeof clientEnvSchema>;
+
+let cachedClientEnv: ClientEnv | null = null;
+
+/**
+ * Lazily validates and returns client-safe environment variables.
+ */
+export function getClientEnv(): ClientEnv {
+  if (!cachedClientEnv) {
+    cachedClientEnv = clientEnvSchema.parse({
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    });
+  }
+  return cachedClientEnv;
+}

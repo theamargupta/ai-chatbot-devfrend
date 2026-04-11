@@ -2,7 +2,7 @@ import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
 import { type IMessage } from "@/types";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 
 export type MessageRole = "user" | "assistant";
 
@@ -32,7 +32,7 @@ ${contextBlock}`;
 }
 
 export function getAnthropicClient(): Anthropic {
-  return new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  return new Anthropic({ apiKey: getEnv().ANTHROPIC_API_KEY });
 }
 
 export function generateId(): string {
