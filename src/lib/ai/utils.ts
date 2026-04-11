@@ -11,14 +11,21 @@ export const MODEL = "claude-sonnet-4-20250514";
 export const SYSTEM_PROMPT =
   "You are a helpful AI assistant. Answer questions clearly and concisely.";
 
-export function buildSystemPrompt(chunks?: string[]): string {
+export function buildSystemPrompt(
+  chunks?: string[],
+  basePrompt?: string,
+): string {
+  const base = basePrompt ?? SYSTEM_PROMPT;
+
   if (!chunks || chunks.length === 0) {
-    return SYSTEM_PROMPT;
+    return base;
   }
 
   const contextBlock = chunks.map((c) => `---\n${c}\n---`).join("\n");
 
-  return `You are a helpful AI assistant. Answer questions based on the following context. If the context doesn't contain relevant information, say so and answer from your general knowledge.
+  return `${base}
+
+Answer questions based on the following context. If the context doesn't contain relevant information, say so and answer from your general knowledge.
 
 Context from knowledge base:
 ${contextBlock}`;

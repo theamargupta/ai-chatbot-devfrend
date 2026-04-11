@@ -19,7 +19,8 @@
       "Bash(node -e \"const {PDFParse} = require\\('pdf-parse'\\); const p = new PDFParse\\(\\); console.log\\(typeof p.loadPDF, typeof p.text, Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\)\\)\")",
       "Bash(node -e \"const {PDFParse} = require\\('pdf-parse'\\); const p = new PDFParse\\(\\); console.log\\(Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\).join\\(', '\\)\\)\")",
       "Bash(sudo chown:*)",
-      "Bash(npx shadcn@latest add label --yes)"
+      "Bash(npx shadcn@latest add label --yes)",
+      "Bash(npx shadcn@latest add dialog --yes)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -174,6 +174,16 @@ export default function KnowledgePage() {
         </header>
 
         <div className="flex flex-col gap-6 px-6 py-6">
+          {/* Testing Banner */}
+          <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
+            This page is for quick testing. For production, manage knowledge
+            from your{" "}
+            <Link href="/dashboard/chatbots" className="font-medium underline underline-offset-2">
+              Dashboard &rarr; Chatbots &rarr; Knowledge Base
+            </Link>
+            .
+          </div>
+
           {/* Page Title */}
           <div>
             <h2 className="text-lg font-semibold tracking-tight">

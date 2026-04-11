@@ -10,7 +10,7 @@ export async function processDocument(documentId: string): Promise<number> {
   // Fetch document
   const { data: doc, error: fetchError } = await supabase
     .from("documents")
-    .select("id, raw_content, status")
+    .select("id, raw_content, status, chatbot_id")
     .eq("id", documentId)
     .single();
 
@@ -47,6 +47,7 @@ export async function processDocument(documentId: string): Promise<number> {
       chunk_index: chunk.chunkIndex,
       token_count: chunk.tokenCount,
       embedding: JSON.stringify(embeddings[i]),
+      ...(doc.chatbot_id ? { chatbot_id: doc.chatbot_id } : {}),
     }));
 
     const { error: insertError } = await supabase

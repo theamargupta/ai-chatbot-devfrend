@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = getSupabaseAdmin();
+    const { searchParams } = new URL(request.url);
+    const chatbotId = searchParams.get("chatbot_id");
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("documents")
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (chatbotId) {
+      query = query.eq("chatbot_id", chatbotId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Supabase fetch error:", error);
@@ -26,6 +34,7 @@ export async function GET() {
       rawContent: doc.raw_content,
       status: doc.status,
       chunkCount: doc.chunk_count,
+      chatbotId: doc.chatbot_id,
       createdAt: doc.created_at,
       updatedAt: doc.updated_at,
     }));

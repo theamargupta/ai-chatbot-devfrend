@@ -14,11 +14,13 @@ const textSchema = z.object({
     .string()
     .min(1, "Content is required")
     .max(MAX_TEXT_LENGTH, `Content must be under ${MAX_TEXT_LENGTH} characters`),
+  chatbotId: z.string().uuid().optional(),
 });
 
 const urlSchema = z.object({
   type: z.literal("url"),
   url: z.string().url("Must be a valid URL"),
+  chatbotId: z.string().uuid().optional(),
 });
 
 function stripHtmlTags(html: string): string {
@@ -93,12 +95,17 @@ export async function POST(request: Request) {
     let title: string;
     let content: string;
     let source: string | null = null;
+    let chatbotId: string | undefined;
 
     if (contentType.includes("multipart/form-data")) {
       // PDF upload
       const formData = await request.formData();
       const file = formData.get("file");
       const formType = formData.get("type");
+      const formChatbotId = formData.get("chatbotId");
+      if (typeof formChatbotId === "string" && formChatbotId) {
+        chatbotId = formChatbotId;
+      }
 
       if (formType !== "pdf" || !(file instanceof File)) {
         return NextResponse.json(
@@ -149,6 +156,7 @@ export async function POST(request: Request) {
         type = "text";
         title = textResult.data.title;
         content = textResult.data.content;
+        chatbotId = textResult.data.chatbotId;
       } else {
         // Try url schema
         const urlResult = urlSchema.safeParse(body);
@@ -158,6 +166,7 @@ export async function POST(request: Request) {
           title = fetched.title;
           content = fetched.content;
           source = urlResult.data.url;
+          chatbotId = urlResult.data.chatbotId;
         } else {
           return NextResponse.json(
             {
@@ -181,6 +190,7 @@ export async function POST(request: Request) {
         raw_content: content,
         status: "pending",
         chunk_count: 0,
+        ...(chatbotId ? { chatbot_id: chatbotId } : {}),
       })
       .select()
       .single();

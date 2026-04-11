@@ -17,7 +17,7 @@ interface ISSEEvent {
 // Capture at parse time — document.currentScript is null after deferred execution
 const _widgetScript: HTMLScriptElement | null =
   (document.currentScript as HTMLScriptElement | null) ??
-  document.querySelector<HTMLScriptElement>('script[data-api-url]');
+  document.querySelector<HTMLScriptElement>('script[data-embed-key]');
 
 function getConfig(): IWidgetConfig {
   const script = _widgetScript;
@@ -29,7 +29,7 @@ function getConfig(): IWidgetConfig {
   });
 
   return {
-    chatbotId: script?.getAttribute('data-chatbot-id') ?? '',
+    embedKey: script?.getAttribute('data-embed-key') ?? '',
     apiUrl: script?.getAttribute('data-api-url') ?? '',
     primaryColor: script?.getAttribute('data-primary-color') ?? '#2563eb',
     title: script?.getAttribute('data-title') ?? 'Chat with us',
@@ -575,7 +575,10 @@ function createWidget(config: IWidgetConfig): void {
           'Content-Type': 'application/json',
           'X-Visitor-ID': visitorId,
         },
-        body: JSON.stringify({ messages: messagesPayload }),
+        body: JSON.stringify({
+          messages: messagesPayload,
+          ...(config.embedKey ? { embedKey: config.embedKey } : {}),
+        }),
       });
 
       if (!response.ok) {

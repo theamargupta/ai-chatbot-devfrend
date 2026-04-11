@@ -1,5 +1,5 @@
 export interface IWidgetConfig {
-  chatbotId: string;
+  embedKey: string;
   apiUrl: string;
   primaryColor: string;
   title: string;
