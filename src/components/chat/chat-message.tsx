@@ -1,11 +1,12 @@
 "use client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { Message } from "@/types";
+import type { IMessage } from "@/types";
 
 interface IChatMessageProps {
-  message: Message;
+  message: IMessage;
   isStreaming: boolean;
   isFirstInGroup: boolean;
 }
@@ -45,6 +46,11 @@ export function ChatMessage({ message, isStreaming, isFirstInGroup }: IChatMessa
         </div>
       ) : (
         <div className="max-w-[85%] text-sm leading-relaxed text-foreground">
+          {message.contextChunkCount && message.contextChunkCount > 0 && (
+            <Badge variant="secondary" className="mb-1.5 text-[10px]">
+              Answered from knowledge base
+            </Badge>
+          )}
           <p className="whitespace-pre-wrap">
             {message.content}
             {isStreaming && (

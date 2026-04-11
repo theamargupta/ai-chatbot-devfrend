@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ChatWindow } from "@/components/chat/chat-window";
 import { ChatInput } from "@/components/chat/chat-input";
 import { useChat } from "@/hooks/useChat";
@@ -32,14 +33,22 @@ export default function ChatPage() {
             </div>
             <h1 className="text-sm font-semibold tracking-tight">AI Chat</h1>
           </div>
-          {messages.length > 0 && (
-            <button
-              onClick={clearMessages}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/knowledge"
               className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              Clear chat
-            </button>
-          )}
+              Knowledge Base
+            </Link>
+            {messages.length > 0 && (
+              <button
+                onClick={clearMessages}
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                Clear chat
+              </button>
+            )}
+          </div>
         </header>
 
         {/* Messages */}

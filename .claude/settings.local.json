@@ -1,11 +1,28 @@
 {
   "permissions": {
     "allow": [
+      "mcp__supabase__apply_migration",
+      "Bash(npx plugins:*)",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_edge_functions",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__memory-mcp__search_memory",
       "Bash(node -e \"console.log\\(require\\('zod/package.json'\\).version\\)\")",
       "mcp__claude_ai_Context7__resolve-library-id",
       "mcp__claude_ai_Context7__query-docs",
       "Bash(node -e \"const z = require\\('zod/v4'\\); console.log\\('zod v4 ok'\\)\")",
-      "Bash(node -e \"const z = require\\('zod'\\); console.log\\('zod ok, version:', z.z?.version || 'unknown'\\)\")"
+      "Bash(node -e \"const z = require\\('zod'\\); console.log\\('zod ok, version:', z.z?.version || 'unknown'\\)\")",
+      "mcp__supabase__list_tables",
+      "Bash(npx shadcn@latest add tabs textarea -y)",
+      "Bash(node -e \"const p = require\\('pdf-parse'\\); console.log\\(typeof p, Object.keys\\(p\\)\\)\")",
+      "Bash(node -e \"const {PDFParse} = require\\('pdf-parse'\\); const p = new PDFParse\\(\\); console.log\\(typeof p.loadPDF, typeof p.text, Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\)\\)\")",
+      "Bash(node -e \"const {PDFParse} = require\\('pdf-parse'\\); const p = new PDFParse\\(\\); console.log\\(Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\).join\\(', '\\)\\)\")",
+      "Bash(sudo chown:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

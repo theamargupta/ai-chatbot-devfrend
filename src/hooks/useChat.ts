@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { type Message } from "@/types";
+import { type IMessage } from "@/types";
 import { generateId } from "@/lib/utils";
 
 interface ISSEEvent {
-  type: "message_start" | "content_delta" | "message_end" | "error";
+  type: "message_start" | "content_delta" | "message_end" | "error" | "context_used";
   content?: string;
+  chunkCount?: number;
 }
 
 interface IUseChatReturn {
-  messages: Message[];
+  messages: IMessage[];
   isStreaming: boolean;
   error: string | null;
   sendMessage: (content: string) => Promise<void>;
@@ -27,7 +28,7 @@ function getErrorMessage(status: number, fallback: string): string {
 }
 
 export function useChat(): IUseChatReturn {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<IMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -45,14 +46,14 @@ export function useChat(): IUseChatReturn {
 
     lastUserMessageRef.current = content;
 
-    const userMessage: Message = {
+    const userMessage: IMessage = {
       id: generateId(),
       role: "user",
       content,
       createdAt: new Date(),
     };
 
-    const assistantMessage: Message = {
+    const assistantMessage: IMessage = {
       id: generateId(),
       role: "assistant",
       content: "",
@@ -124,13 +125,28 @@ export function useChat(): IUseChatReturn {
           }
 
           switch (event.type) {
+            case "context_used": {
+              if (event.chunkCount) {
+                setMessages((prev) => {
+                  const last = prev[prev.length - 1];
+                  if (!last || last.role !== "assistant") return prev;
+
+                  const updated: IMessage = {
+                    ...last,
+                    contextChunkCount: event.chunkCount,
+                  };
+                  return [...prev.slice(0, -1), updated];
+                });
+              }
+              break;
+            }
             case "content_delta": {
               if (event.content) {
                 setMessages((prev) => {
                   const last = prev[prev.length - 1];
                   if (!last || last.role !== "assistant") return prev;
 
-                  const updated: Message = {
+                  const updated: IMessage = {
                     ...last,
                     content: last.content + event.content,
                   };

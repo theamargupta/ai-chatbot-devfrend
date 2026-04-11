@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { ChatMessage } from "@/components/chat/chat-message";
-import type { Message } from "@/types";
+import type { IMessage } from "@/types";
 
 interface IChatWindowProps {
-  messages: Message[];
+  messages: IMessage[];
   isStreaming: boolean;
   error: string | null;
   onClearError: () => void;

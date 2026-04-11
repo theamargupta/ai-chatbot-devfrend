@@ -1,7 +1,7 @@
 import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
-import { type Message } from "@/types";
+import { type IMessage } from "@/types";
 import { env } from "@/lib/env";
 
 export type MessageRole = "user" | "assistant";
@@ -10,6 +10,19 @@ export const MODEL = "claude-sonnet-4-20250514";
 
 export const SYSTEM_PROMPT =
   "You are a helpful AI assistant. Answer questions clearly and concisely.";
+
+export function buildSystemPrompt(chunks?: string[]): string {
+  if (!chunks || chunks.length === 0) {
+    return SYSTEM_PROMPT;
+  }
+
+  const contextBlock = chunks.map((c) => `---\n${c}\n---`).join("\n");
+
+  return `You are a helpful AI assistant. Answer questions based on the following context. If the context doesn't contain relevant information, say so and answer from your general knowledge.
+
+Context from knowledge base:
+${contextBlock}`;
+}
 
 export function getAnthropicClient(): Anthropic {
   return new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
@@ -22,7 +35,7 @@ export function generateId(): string {
 export function createMessage(
   role: MessageRole,
   content: string
-): Message {
+): IMessage {
   return {
     id: generateId(),
     role,
@@ -31,6 +44,6 @@ export function createMessage(
   };
 }
 
-export function formatMessagesForAPI(messages: Message[]) {
+export function formatMessagesForAPI(messages: IMessage[]) {
   return messages.map(({ role, content }) => ({ role, content }));
 }
