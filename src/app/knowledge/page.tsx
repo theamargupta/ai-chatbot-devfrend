@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { IDocument } from "@/types";
+import { Label } from "@/components/ui/label";
 import {
   ArrowLeft,
   FileText,
@@ -23,6 +24,9 @@ import {
   FileUp,
   Upload,
   Loader2,
+  Code,
+  Check,
+  Copy,
 } from "lucide-react";
 
 const STATUS_VARIANT: Record<
@@ -68,6 +72,32 @@ export default function KnowledgePage() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Widget embed config state
+  const [widgetTitle, setWidgetTitle] = useState("Chat with us");
+  const [widgetWelcome, setWidgetWelcome] = useState(
+    "Hi! How can I help you today?",
+  );
+  const [widgetColor, setWidgetColor] = useState("#2563eb");
+  const [widgetPosition, setWidgetPosition] = useState<"left" | "right">(
+    "right",
+  );
+  const [copied, setCopied] = useState(false);
+
+  const embedCode = `<script
+  src="http://localhost:3000/widget.js"
+  data-api-url="http://localhost:3000"
+  data-primary-color="${widgetColor}"
+  data-title="${widgetTitle}"
+  data-welcome-message="${widgetWelcome}"
+  data-position="${widgetPosition}">
+</script>`;
+
+  function handleCopyEmbed() {
+    navigator.clipboard.writeText(embedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   async function handleTextSubmit() {
     if (!textTitle.trim() || !textContent.trim()) return;
@@ -397,6 +427,118 @@ export default function KnowledgePage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Embed Widget */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Code className="size-4" />
+              Embed Widget
+            </h3>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Widget Configuration</CardTitle>
+                <CardDescription>
+                  Customize and copy the embed code to add the chat widget to
+                  your website.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {/* Title */}
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="widget-title">Title</Label>
+                  <Input
+                    id="widget-title"
+                    value={widgetTitle}
+                    onChange={(e) => setWidgetTitle(e.target.value)}
+                    placeholder="Chat with us"
+                  />
+                </div>
+
+                {/* Welcome message */}
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="widget-welcome">Welcome Message</Label>
+                  <Input
+                    id="widget-welcome"
+                    value={widgetWelcome}
+                    onChange={(e) => setWidgetWelcome(e.target.value)}
+                    placeholder="Hi! How can I help you today?"
+                  />
+                </div>
+
+                {/* Primary color */}
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="widget-color">Primary Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="widget-color"
+                      type="color"
+                      value={widgetColor}
+                      onChange={(e) => setWidgetColor(e.target.value)}
+                      className="h-9 w-12 cursor-pointer rounded-md border border-border bg-transparent p-0.5"
+                    />
+                    <span className="text-sm font-mono text-muted-foreground">
+                      {widgetColor}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Position */}
+                <div className="flex flex-col gap-1.5">
+                  <Label>Position</Label>
+                  <div className="flex gap-3">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="widget-position"
+                        value="left"
+                        checked={widgetPosition === "left"}
+                        onChange={() => setWidgetPosition("left")}
+                        className="accent-primary"
+                      />
+                      Left
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="widget-position"
+                        value="right"
+                        checked={widgetPosition === "right"}
+                        onChange={() => setWidgetPosition("right")}
+                        className="accent-primary"
+                      />
+                      Right
+                    </label>
+                  </div>
+                </div>
+
+                {/* Generated code */}
+                <div className="flex flex-col gap-1.5">
+                  <Label>Embed Code</Label>
+                  <pre className="overflow-x-auto rounded-lg border border-border bg-muted/50 p-4 text-xs leading-relaxed">
+                    <code>{embedCode}</code>
+                  </pre>
+                </div>
+
+                {/* Copy button */}
+                <div className="flex justify-end">
+                  <Button onClick={handleCopyEmbed} variant="outline" size="sm">
+                    {copied ? (
+                      <>
+                        <Check className="size-3.5" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3.5" />
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "widget:build": "cd packages/widget && npm run build",
+    "widget:dev": "cd packages/widget && npm run dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",

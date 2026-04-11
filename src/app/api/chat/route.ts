@@ -4,6 +4,24 @@ import { getAnthropicClient, MODEL, buildSystemPrompt } from "@/lib/ai/utils";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
+// ---------------------------------------------------------------------------
+// CORS — widget runs on a different origin
+// ---------------------------------------------------------------------------
+
+const corsHeaders: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*', // TODO: restrict to allowed origins
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Visitor-ID',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
+// ---------------------------------------------------------------------------
+// Schema
+// ---------------------------------------------------------------------------
+
 const chatRequestSchema = z.object({
   messages: z
     .array(
@@ -28,7 +46,7 @@ function encodeSSE(event: ISSEEvent): string {
 function createErrorResponse(status: number, message: string): NextResponse {
   return NextResponse.json(
     { success: false, error: message },
-    { status }
+    { status, headers: corsHeaders }
   );
 }
 
@@ -149,6 +167,7 @@ export async function POST(req: NextRequest) {
 
   return new Response(stream, {
     headers: {
+      ...corsHeaders,
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
