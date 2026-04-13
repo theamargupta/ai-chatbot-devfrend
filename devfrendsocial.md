@@ -1,0 +1,9 @@
+https://www.facebook.com/profile.php?id=61552391678530#
+https://www.instagram.com/devfrend_ai
+https://www.threads.com/@devfrend_ai
+https://in.pinterest.com/devfrend_ai/
+https://www.google.com/maps?cid=7779915368013072748
+https://www.youtube.com/@DevfrendAutomations
+https://x.com/devfrend_ai
+https://in.linkedin.com/company/devfrendcom
+https://www.linkedin.com/in/amar-gupta-74733b394/
