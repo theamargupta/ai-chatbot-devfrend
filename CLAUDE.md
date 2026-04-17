@@ -5,6 +5,14 @@
 ## Overview
 AI-powered embeddable chatbot widget for businesses. RAG pipeline answers customers from uploaded business content 24/7. Includes multi-tenant dashboard, embeddable widget (Shadow DOM, 3.9KB gzip), lead capture, and human escalation.
 
+## Nested Context
+When editing code in these areas, check the local CLAUDE.md for area-specific rules:
+- `src/app/api/` — API route conventions (CORS, Zod, rate limiting, response shape)
+- `src/lib/ai/` — RAG pipeline (model const, chunker, embeddings)
+- `src/components/ui/` — ShadCN (auto-managed)
+- `packages/widget/` — embeddable widget (3.9KB gzip budget)
+- `supabase/` — migrations and RLS patterns
+
 ## Tech Stack
 - Next.js 16.2.x (App Router, Turbopack, src/ directory)
 - React 19, TypeScript strict mode
@@ -30,8 +38,12 @@ npm run lint          # ESLint
 ## Project Structure
 ```
 src/
+  proxy.ts              # Next.js 16 proxy (auth gate + redirects; replaces middleware.ts)
   app/
-    (chat)/             # Chat demo page
+    page.tsx            # Marketing landing page
+    demo/               # Live chat demo
+    test-widget/        # Widget integration test page
+    knowledge/          # Knowledge base management UI
     dashboard/          # Protected multi-tenant dashboard
     api/
       chat/route.ts     # SSE streaming chat (RAG)
@@ -43,10 +55,13 @@ src/
     chat/               # ChatWindow, ChatInput, ChatMessage
     ui/                 # ShadCN (auto-managed, don't edit)
   lib/
-    ai/                 # Anthropic client, embeddings, chunker, document processor
-    supabase.ts         # Admin + browser clients
+    ai/                 # Anthropic client, embeddings, chunker, document processor (MODEL const in ai/utils.ts)
+    supabase.ts         # Service-role admin client (server only)
+    supabase-server.ts  # SSR client with cookie handling
+    supabase-browser.ts # Browser client for client components
     env.ts              # Zod env validation (lazy, doesn't fail build)
     rate-limit.ts       # Per-visitor rate limiting
+    config.ts           # Base URL helper
   hooks/                # useChat, useKnowledge, useAutoScroll
   types/index.ts        # All interfaces (IMessage, IChatbot, etc.)
 packages/widget/        # Embeddable vanilla JS widget (Vite build)
