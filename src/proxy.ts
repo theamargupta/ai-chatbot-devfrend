@@ -3,7 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const publicRoutes = [
   "/",
+  "/about",
   "/login",
+  "/admin/login",
   "/api/chat",
   "/api/auth",
   "/widget.js",
