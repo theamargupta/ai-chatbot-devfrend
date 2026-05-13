@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { motion } from "framer-motion";
 
@@ -75,6 +76,20 @@ export default function LoginPage() {
         transition={{ duration: 0.6 }}
         className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl"
       >
+        {/* Portfolio piece banner (unobtrusive — signup stays open) */}
+        <div className="mb-5 flex items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] text-white/50">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+          <span>
+            Built by Amar Gupta &middot; portfolio piece &mdash;{" "}
+            <Link
+              href="/about"
+              className="text-purple-300 underline-offset-2 hover:underline"
+            >
+              see /about
+            </Link>
+          </span>
+        </div>
+
         {/* Logo */}
         <div className="mb-6 flex items-center justify-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500">

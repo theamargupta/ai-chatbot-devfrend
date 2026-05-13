@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
+import { Architecture } from "@/components/marketing/Architecture";
+import { BuiltByAmar } from "@/components/marketing/BuiltByAmar";
 import {
   motion,
   useMotionValue,
@@ -110,6 +112,9 @@ function Navbar() {
           <a href="#pricing" className="transition-colors hover:text-white">
             Pricing
           </a>
+          <Link href="/about" className="transition-colors hover:text-white">
+            About
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">
@@ -1006,9 +1011,19 @@ function Footer() {
     <footer className="border-t border-white/10">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row">
         <p className="text-sm text-white/30">
-          &copy; 2026 Devfrend. All rights reserved.
+          &copy; 2026 Devfrend. All rights reserved
+          <Link
+            href="/admin/login"
+            aria-label="Operator login"
+            className="ml-0.5 inline-block text-white/30 hover:text-white/60"
+          >
+            .
+          </Link>
         </p>
         <div className="flex items-center gap-6 text-sm text-white/30">
+          <Link href="/about" className="transition-colors hover:text-white">
+            About
+          </Link>
           <Link href="/demo" className="transition-colors hover:text-white">
             Demo
           </Link>
@@ -1042,8 +1057,10 @@ export default function LandingPage() {
       <HowItWorksSection />
       <FeaturesSection />
       <WidgetDemoSection />
+      <Architecture />
       <PricingSection />
       <FinalCTASection />
+      <BuiltByAmar />
       <Footer />
     </div>
   );
